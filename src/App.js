@@ -4,11 +4,14 @@ import { View, ScreenSpinner, AdaptivityProvider, AppRoot } from '@vkontakte/vku
 import '@vkontakte/vkui/dist/vkui.css';
 
 import Home from './panels/Home';
+import CreateCheck from './panels/CreateCheck';
+import Check from './panels/Check';
 
 const App = () => {
 	const [activePanel, setActivePanel] = useState('home');
 	const [fetchedUser, setUser] = useState(null);
 	const [popout, setPopout] = useState(<ScreenSpinner size='large' />);
+	const [check, setCheck] = useState(null);
 
 	useEffect(() => {
 		bridge.subscribe(({ detail: { type, data }}) => {
@@ -27,7 +30,54 @@ const App = () => {
 	}, []);
 
 	const go = e => {
+		if (e.currentTarget.dataset.checkclose) {
+			closeCheck(e.currentTarget.dataset.checkclose)
+		}
+		else if (e.currentTarget.dataset.checkleave) {
+			leaveCheck(e.currentTarget.dataset.checkleave)
+		}
 		setActivePanel(e.currentTarget.dataset.to);
+		setCheck(e.currentTarget.dataset.check);
+	};
+
+	function closeCheck(check_) {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/check/close/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: check_ })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+				console.log(err)
+			})
+			.then(() => {
+				
+			})
+	};
+
+	function leaveCheck(check_) {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/check/leave/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: check_ })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+				console.log(err)
+			})
+			.then(() => {
+				
+			})
 	};
 
 	return (
@@ -35,6 +85,8 @@ const App = () => {
 			<AppRoot>
 				<View activePanel={activePanel} popout={popout}>
 					<Home id='home' fetchedUser={fetchedUser} go={go} />
+					<CreateCheck id='create' fetchedUser={fetchedUser} go={go}/>
+					<Check id='check' fetchedUser={fetchedUser} go={go} check={check}/>
 				</View>
 			</AppRoot>
 		</AdaptivityProvider>
