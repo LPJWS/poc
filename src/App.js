@@ -13,6 +13,28 @@ const App = () => {
 	const [popout, setPopout] = useState(<ScreenSpinner size='large' />);
 	const [check, setCheck] = useState(null);
 
+	let hash = window.location.hash.replace('#', '')
+	if (hash) {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/check/join/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: hash })
+		}).then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+				console.log(err)
+			})
+			.then((check_) => {
+				setCheck(check_.id)
+				setActivePanel("check")
+			})
+		window.location.hash = ''
+	}
+
 	useEffect(() => {
 		bridge.subscribe(({ detail: { type, data }}) => {
 			if (type === 'VKWebAppUpdateConfig') {
@@ -36,8 +58,13 @@ const App = () => {
 		else if (e.currentTarget.dataset.checkleave) {
 			leaveCheck(e.currentTarget.dataset.checkleave)
 		}
+		else if (e.currentTarget.dataset.newcheck) {
+			newCheck(e.currentTarget.dataset.newcheck)
+		}
+		else if (e.currentTarget.dataset.check) {
+			setCheck(e.currentTarget.dataset.check);
+		}
 		setActivePanel(e.currentTarget.dataset.to);
-		setCheck(e.currentTarget.dataset.check);
 	};
 
 	function closeCheck(check_) {
@@ -58,7 +85,27 @@ const App = () => {
 			.then(() => {
 				
 			})
-	};
+	}
+
+	function newCheck(title) {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/check/new/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ title: title })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+					console.log(err)
+			})
+			.then(check_ => {
+				setCheck(check_.id)
+			})
+	}
 
 	function leaveCheck(check_) {
 		const params = window.location.search.slice(1);

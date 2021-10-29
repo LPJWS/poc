@@ -8,6 +8,7 @@ import { Icon20AddCircle } from '@vkontakte/icons';
 import { Icon56CheckCircleOutline } from '@vkontakte/icons';
 import { Icon56NotePenOutline } from '@vkontakte/icons';
 import { Icon56GestureOutline } from '@vkontakte/icons';
+import { Icon36MoneyCircleOutline } from '@vkontakte/icons';
 
 const Home = ({ id, go, fetchedUser }) => {
 	const [popout, setPopout] = useState(null);
@@ -42,9 +43,10 @@ const Home = ({ id, go, fetchedUser }) => {
 		getMember()
 	}, [])
 
-	// console.log(fetchedUser)
 	return (
+		
 		<View activePanel={id} popout={popout}>
+			{fetchedUser &&
 			<Panel id={id}>
 				<PullToRefresh onRefresh={onRefresh} isFetching={fetching}>
 					<PanelHeader>Поделим?</PanelHeader>
@@ -68,9 +70,9 @@ const Home = ({ id, go, fetchedUser }) => {
 						{
 							member.checks.length ? member.checks.map((check, index) => {
 								return (
-									<Cell
-										before={<Icon24MoneyCircle/>}
-										description={check.total_amount + ' ₽'}
+									<RichCell
+										multiline
+										text={check.total_amount + ' ₽'}
 										after={<Icon24BrowserForward />}
 										key={check.id}
 										onClick={go}
@@ -78,7 +80,7 @@ const Home = ({ id, go, fetchedUser }) => {
 										data-check={check.id}
 									>
 										<Title level="2" weight="regular">{check.title}</Title>
-									</Cell>
+									</RichCell>
 								)
 							}) : <Div style={{alignItems: "center", display: "flex", flexDirection: 'column'}}>
 									<Title level="2" weight="regular">У вас нет активных счетов</Title>
@@ -180,7 +182,7 @@ const Home = ({ id, go, fetchedUser }) => {
 					</Group>
 					}
 				</PullToRefresh>
-			</Panel>
+			</Panel>}
 		</View>
 	)
 };

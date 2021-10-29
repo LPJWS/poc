@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import bridge from '@vkontakte/vk-bridge';
 
-import { Panel, PanelHeader, Header, Button, Group, RichCell, Cell, ModalRoot, Div, Text, Avatar, ScreenSpinner, View, Gradient, Title, IconButton, PanelHeaderBack, FormLayout, PullToRefresh, ModalCard } from '@vkontakte/vkui';
+import { Panel, PanelHeader, Header, Button, Group, RichCell, Cell, ModalRoot, Snackbar, Div, Text, Avatar, ScreenSpinner, View, Gradient, Title, IconButton, PanelHeaderBack, FormLayout, PullToRefresh, ModalCard, VKCOM } from '@vkontakte/vkui';
 import { Icon24BrowserForward } from '@vkontakte/icons';
 import { Icon24MoneyCircle } from '@vkontakte/icons';
 import { Icon20AddCircle } from '@vkontakte/icons';
@@ -11,6 +12,7 @@ import { Icon56GestureOutline } from '@vkontakte/icons';
 import { Icon12Favorite } from '@vkontakte/icons';
 import { Icon16Linked } from '@vkontakte/icons';
 import { Icon56ErrorTriangleOutline } from '@vkontakte/icons';
+import { Icon16ReplyOutline } from '@vkontakte/icons';
 
 const Check = (props) => {
 	const [popout, setPopout] = useState(null);
@@ -18,6 +20,7 @@ const Check = (props) => {
     const [check, setCheck] = useState(null);
     const [fetching, setFetching] = useState(false);
     const [activeModal, setActiveModal] = useState(null);
+    const [snackbar, setSnackbar] = useState(null);
 
 	function getMember() {
 		setPopout(<ScreenSpinner/>)
@@ -40,7 +43,7 @@ const Check = (props) => {
     function getCheck() {
 		setPopout(<ScreenSpinner/>)
 		const params = window.location.search.slice(1);
-		fetch('https://pieceofchit.xyz/api/v1/check/get/'+ props.check +'/?'+params)
+            fetch('https://pieceofchit.xyz/api/v1/check/get/'+ props.check +'/?'+params)
 			.then(response => {
 				if (!response.ok) {
 					throw new Error(response.statusText)
@@ -54,6 +57,17 @@ const Check = (props) => {
 				setCheck(check_)
 			})
 	}
+
+    function copyLink() {
+        bridge.send("VKWebAppCopyText", {"text": "https://vk.com/app7987402#" + check.id});
+        setSnackbar(
+            <Snackbar
+                onClose={() => setSnackbar(null)}
+            >
+               Ссылка скопирована
+            </Snackbar>
+        )
+    }
 
     const onRefresh = () => {
 		setFetching(true)
@@ -100,7 +114,7 @@ const Check = (props) => {
 
 	return (
 		<View activePanel={props.id} popout={popout} modal={modal}>
-            {check && 
+            {check && member &&
 			<Panel id={props.id}>
                 <PullToRefresh onRefresh={onRefresh} isFetching={fetching}>
                     <PanelHeader left={<PanelHeaderBack onClick={props.go} data-to="home"/>}>{check.title}</PanelHeader>
@@ -136,11 +150,21 @@ const Check = (props) => {
                                     <Icon56NotePenOutline style={{marginTop: ".5rem"}}/>
                                 </Div>
                         }
-                        <Div>
+                        <Div style={{display: "flex"}}>
                             <Button 
                                 stretched size="l" 
                                 mode="outline"
                                 before={<Icon16Linked/>}
+                                onClick={() => {copyLink()}}
+                                style={{marginRight: ".5rem"}}
+                            >
+                                Скопировать ссылку
+                            </Button>
+                            <Button 
+                                stretched size="l" 
+                                mode="outline"
+                                before={<Icon16ReplyOutline/>}
+                                onClick={() => {bridge.send("VKWebAppShare", {"link": "https://vk.com/app7987402#" + check.id});}}
                             >
                                 Пригласить
                             </Button>
@@ -201,7 +225,7 @@ const Check = (props) => {
                             </Button>
                         </Div>
                     }
-                    
+                    {snackbar}
                 </PullToRefresh>
 			</Panel>
             }
