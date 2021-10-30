@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
-import { Panel, PanelHeader, Header, Button, Group, RichCell, Cell, Div, Avatar, ScreenSpinner, View, Gradient, Title, PullToRefresh } from '@vkontakte/vkui';
+import { Panel, PanelHeader, Header, Button, Group, RichCell, Cell, Div, Avatar, ScreenSpinner, View, Gradient, Title, IconButton, PullToRefresh, FormLayout, FormItem, Input, FormLayoutGroup } from '@vkontakte/vkui';
 import { Icon24BrowserForward } from '@vkontakte/icons';
 import { Icon24MoneyCircle } from '@vkontakte/icons';
 import { Icon20AddCircle } from '@vkontakte/icons';
@@ -9,11 +9,13 @@ import { Icon56CheckCircleOutline } from '@vkontakte/icons';
 import { Icon56NotePenOutline } from '@vkontakte/icons';
 import { Icon56GestureOutline } from '@vkontakte/icons';
 import { Icon36MoneyCircleOutline } from '@vkontakte/icons';
+import { Icon16Done } from '@vkontakte/icons';
 
 const Home = ({ id, go, fetchedUser }) => {
 	const [popout, setPopout] = useState(null);
 	const [member, setMember] = useState(null);
 	const [fetching, setFetching] = useState(false);
+	const [title, setTitle] = useState('');
 
 	function getMember() {
 		setPopout(<ScreenSpinner/>)
@@ -30,6 +32,27 @@ const Home = ({ id, go, fetchedUser }) => {
 			.then(member => {
 				setPopout(null)
 				setMember(member)
+			})
+	}
+
+	function newCheck() {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/check/new/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ title: title })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+					console.log(err)
+			})
+			.then(() => {
+				setTitle('')
+				getMember()
 			})
 	}
 
@@ -75,7 +98,7 @@ const Home = ({ id, go, fetchedUser }) => {
 										text={check.total_amount + ' ₽'}
 										after={<Icon24BrowserForward />}
 										key={check.id}
-										onClick={go}
+										onClick={(go)}
 										data-to="check"
 										data-check={check.id}
 									>
@@ -87,12 +110,22 @@ const Home = ({ id, go, fetchedUser }) => {
 									<Icon56NotePenOutline style={{marginTop: ".5rem"}}/>
 								</Div>
 						}
+						<FormLayoutGroup mode="horizontal">
+							<FormItem top="Название">
+								<Input 
+									type="text"
+									name="title"
+									value={title}
+									onChange={e => {setTitle(e.target.value)}}
+									align="center"
+								/>
+							</FormItem>
+						</FormLayoutGroup>
 						<Div>
 							<Button 
 								stretched size="l" 
 								mode="outline"
-								onClick={go}
-								data-to="create"
+								onClick={() => newCheck()}
 							>
 								<Icon20AddCircle/>
 							</Button>
