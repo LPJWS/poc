@@ -69,12 +69,25 @@ const Check = (props) => {
         )
     }
 
-    const onRefresh = () => {
-		setFetching(true)
-		getMember()
-        getCheck()
-		setFetching(false)
-	}
+    function removeRecord(record_) {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/record/delete/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: record_ })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+				console.log(err)
+			})
+			.then(() => {
+				getCheck()
+			})
+	};
     
     const modal = (
         <ModalRoot
@@ -116,64 +129,65 @@ const Check = (props) => {
 		<View activePanel={props.id} popout={popout} modal={modal}>
             {check && member &&
 			<Panel id={props.id}>
-                <PullToRefresh onRefresh={onRefresh} isFetching={fetching}>
-                    <PanelHeader left={<PanelHeaderBack onClick={props.go} data-to="home"/>}>{check.title}</PanelHeader>
-                    <Group>
-                        <Gradient style={{
-                            margin: '-7px -7px 0 -7px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textAlign: 'center',
-                            padding: 32,
-                        }}>	
-                            <Title level="1" weight="heavy" style={{ marginBottom: 16 }}>Общая сумма счета</Title>
-                            <Title level="1" weight="heavy" style={{ marginBottom: 16 }}>{check.total_amount} ₽</Title>
-                        </Gradient>
-                    </Group>
-                    <Group header={<Header indicator={check.members.length}>Участники</Header>}>
-                        {
-                            check.members.length ? check.members.map((member_, index) => {
-                                return (
-                                    <Cell
-                                        disabled
-                                        before={<Avatar size={44} src={member_.photo}/>}
-                                        key={member_.id}
-                                        badge={member_.id === check.organizer.id ? <Icon12Favorite/>: ''}
-                                    >
-                                        {member_.name}
-                                    </Cell>
-                                )
-                            }) : <Div style={{alignItems: "center", display: "flex", flexDirection: 'column'}}>
-                                    <Title level="2" weight="regular">Нет участников ?! Да как такое возможно?!</Title>
-                                    <Icon56NotePenOutline style={{marginTop: ".5rem"}}/>
-                                </Div>
-                        }
-                        <Div style={{display: "flex"}}>
-                            <Button 
-                                stretched size="l" 
-                                mode="outline"
-                                before={<Icon16Linked/>}
-                                onClick={() => {copyLink()}}
-                                style={{marginRight: ".5rem"}}
-                            >
-                                Скопировать ссылку
-                            </Button>
-                            <Button 
-                                stretched size="l" 
-                                mode="outline"
-                                before={<Icon16ReplyOutline/>}
-                                onClick={() => {bridge.send("VKWebAppShare", {"link": "https://vk.com/app7987402#" + check.id});}}
-                            >
-                                Пригласить
-                            </Button>
-                        </Div>
-                    </Group>
-                    <Group header={<Header indicator={check.records.length}>Затраты</Header>}>
-                        {
-                            check.records.length ? check.records.map((record, index) => {
-                                return (
+                <PanelHeader left={<PanelHeaderBack onClick={props.go} data-to="home"/>}>{check.title}</PanelHeader>
+                <Group>
+                    <Gradient style={{
+                        margin: '-7px -7px 0 -7px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        padding: 32,
+                    }}>	
+                        <Title level="1" weight="heavy" style={{ marginBottom: 16 }}>Общая сумма счета</Title>
+                        <Title level="1" weight="heavy" style={{ marginBottom: 16 }}>{check.total_amount} ₽</Title>
+                        <Button size="m" mode="outline" onClick={() => {getMember(); getCheck()}}>Нажмите для обновления</Button>
+                    </Gradient>
+                </Group>
+                <Group header={<Header indicator={check.members.length}>Участники</Header>}>
+                    {
+                        check.members.length ? check.members.map((member_, index) => {
+                            return (
+                                <Cell
+                                    disabled
+                                    before={<Avatar size={44} src={member_.photo}/>}
+                                    key={member_.id}
+                                    badge={member_.id === check.organizer.id ? <Icon12Favorite/>: ''}
+                                >
+                                    {member_.name}
+                                </Cell>
+                            )
+                        }) : <Div style={{alignItems: "center", display: "flex", flexDirection: 'column'}}>
+                                <Title level="2" weight="regular">Нет участников ?! Да как такое возможно?!</Title>
+                                <Icon56NotePenOutline style={{marginTop: ".5rem"}}/>
+                            </Div>
+                    }
+                    <Div style={{display: "flex"}}>
+                        <Button 
+                            stretched size="l" 
+                            mode="outline"
+                            before={<Icon16Linked/>}
+                            onClick={() => {copyLink()}}
+                            style={{marginRight: ".5rem"}}
+                        >
+                            Скопировать ссылку
+                        </Button>
+                        <Button 
+                            stretched size="l" 
+                            mode="outline"
+                            before={<Icon16ReplyOutline/>}
+                            onClick={() => {bridge.send("VKWebAppShare", {"link": "https://vk.com/app7987402#" + check.id});}}
+                        >
+                            Пригласить
+                        </Button>
+                    </Div>
+                </Group>
+                <Group header={<Header indicator={check.records.length}>Затраты</Header>}>
+                    {
+                        check.records.length ? check.records.map((record, index) => {
+                            return (
+                                record.member.id == member.id || member.id == check.organizer.id ? 
                                     <RichCell
                                         disabled
                                         multiline
@@ -183,50 +197,70 @@ const Check = (props) => {
                                         key={record.id}
                                         indicator={record.amount + ' ₽'}
                                         caption={record.desc}
+                                        actions={
+                                            <React.Fragment>
+                                            <Button mode="destructive" onClick={() => removeRecord(record.id)}>удалить</Button>
+                                            </React.Fragment>
+                                        }
                                     >
                                         <Title level="2" weight="regular">{record.member.name}</Title>
                                     </RichCell>
-                                )
-                            }) : <Div style={{alignItems: "center", display: "flex", flexDirection: 'column'}}>
-                                    <Title level="2" weight="regular">Трат еще нет</Title>
-                                    <Icon56NotePenOutline style={{marginTop: ".5rem"}}/>
-                                </Div>
-                        }
-                        <Div>
-                            <Button 
-                                stretched size="l" 
-                                mode="outline"
-                            >
-                                <Icon20AddCircle/>
-                            </Button>
-                        </Div>
-                    </Group>
-                    {
-                        member.id === check.organizer.id &&
-                        <Div>
-                            <Button 
-                                stretched size="l" 
-                                mode="outline"
-                                onClick={() => {setActiveModal('close')}}
-                            >
-                                Нажмите здесь для закрытия счета и подсчета результатов
-                            </Button>
-                        </Div>
+                                :
+                                <RichCell
+                                    disabled
+                                    multiline
+                                    text={record.object}
+                                    before={<Avatar size={72} src={record.member.photo}/>}
+                                    after={record.amount + ' ₽'}
+                                    key={record.id}
+                                    indicator={record.amount + ' ₽'}
+                                    caption={record.desc}
+                                >
+                                    <Title level="2" weight="regular">{record.member.name}</Title>
+                                </RichCell>
+                            )
+                        }) : <Div style={{alignItems: "center", display: "flex", flexDirection: 'column'}}>
+                                <Title level="2" weight="regular">Трат еще нет</Title>
+                                <Icon56NotePenOutline style={{marginTop: ".5rem"}}/>
+                            </Div>
                     }
-                    {
-                        member.id !== check.organizer.id &&
-                        <Div>
-                            <Button 
-                                stretched size="l" 
-                                mode="destructive"
-                                onClick={() => {setActiveModal('leave')}}
-                            >
-                                Выйти
-                            </Button>
-                        </Div>
-                    }
-                    {snackbar}
-                </PullToRefresh>
+                    <Div>
+                        <Button 
+                            stretched size="l" 
+                            mode="outline"
+                            onClick={props.go}
+                            data-to="create"
+                            data-check={check.id}
+                        >
+                            <Icon20AddCircle/>
+                        </Button>
+                    </Div>
+                </Group>
+                {
+                    member.id === check.organizer.id &&
+                    <Div>
+                        <Button 
+                            stretched size="l" 
+                            mode="outline"
+                            onClick={() => {setActiveModal('close')}}
+                        >
+                            Нажмите здесь для закрытия счета и подсчета результатов
+                        </Button>
+                    </Div>
+                }
+                {
+                    member.id !== check.organizer.id &&
+                    <Div>
+                        <Button 
+                            stretched size="l" 
+                            mode="destructive"
+                            onClick={() => {setActiveModal('leave')}}
+                        >
+                            Выйти
+                        </Button>
+                    </Div>
+                }
+                {snackbar}
 			</Panel>
             }
 		</View>

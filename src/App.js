@@ -4,8 +4,9 @@ import { View, ScreenSpinner, AdaptivityProvider, AppRoot } from '@vkontakte/vku
 import '@vkontakte/vkui/dist/vkui.css';
 
 import Home from './panels/Home';
-import CreateCheck from './panels/CreateCheck';
+import CreateCheck from './panels/CreateRecord';
 import Check from './panels/Check';
+import CreateRecord from './panels/CreateRecord';
 
 const App = () => {
 	const [activePanel, setActivePanel] = useState('home');
@@ -58,7 +59,15 @@ const App = () => {
 		else if (e.currentTarget.dataset.checkleave) {
 			leaveCheck(e.currentTarget.dataset.checkleave)
 		}
-		else if (e.currentTarget.dataset.check) {
+		else if (e.currentTarget.dataset.newobject) {
+			newRecord(
+				e.currentTarget.dataset.check,
+				e.currentTarget.dataset.newobject,
+				e.currentTarget.dataset.newdesc,
+				e.currentTarget.dataset.newamount,
+			)
+		}
+		if (e.currentTarget.dataset.check) {
 			setCheck(e.currentTarget.dataset.check);
 		}
 		setActivePanel(e.currentTarget.dataset.to);
@@ -104,13 +113,33 @@ const App = () => {
 			})
 	};
 
+	function newRecord(check_, object, desc, amount) {
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/record/new/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ check_obj: check_, object: object, desc: desc, amount: amount })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+				console.log(err)
+			})
+			.then(() => {
+				
+			})
+	};
+
 	return (
 		<AdaptivityProvider>
 			<AppRoot>
 				<View activePanel={activePanel} popout={popout}>
 					<Home id='home' fetchedUser={fetchedUser} go={go} />
-					<CreateCheck id='create' fetchedUser={fetchedUser} go={go}/>
 					<Check id='check' fetchedUser={fetchedUser} go={go} check={check}/>
+					<CreateRecord id='create' fetchedUser={fetchedUser} go={go} check={check}/>
 				</View>
 			</AppRoot>
 		</AdaptivityProvider>
