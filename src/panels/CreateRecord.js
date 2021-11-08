@@ -62,13 +62,14 @@ const CreateRecord = (props) => {
 						>
 							<Input
 								type="number"
+								min="0.01"
 								name="amount"
 								value={amount}
 								onChange={e => {setAmount(e.target.value)}}
 							/>
 						</FormItem>
 						<Div>
-							{(object && amount) ?
+							{(object && amount && amount > 0) ?
 								<Button 
 									size="l" 
 									mode="outline" 
