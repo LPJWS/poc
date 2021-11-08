@@ -35,6 +35,50 @@ const Home = ({ id, go, fetchedUser }) => {
 			})
 	}
 
+	function send(debt_id) {
+		setPopout(<ScreenSpinner/>)
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/debt/send/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: debt_id })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+					console.log(err)
+			})
+			.then(member => {
+				setPopout(null)
+				setMember(member)
+			})
+	}
+
+	function confirm(debt_id) {
+		setPopout(<ScreenSpinner/>)
+		const params = window.location.search.slice(1);
+		fetch('https://pieceofchit.xyz/api/v1/debt/confirm/?'+params, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: debt_id })
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.statusText)
+				}
+				return response.json()
+				}).catch(err=>{
+					console.log(err)
+			})
+			.then(member => {
+				setPopout(null)
+				setMember(member)
+			})
+	}
+
 	function newCheck() {
 		const params = window.location.search.slice(1);
 		fetch('https://pieceofchit.xyz/api/v1/check/new/?'+params, {
@@ -161,7 +205,11 @@ const Home = ({ id, go, fetchedUser }) => {
 										key={debt.id}
 										actions={
 											<React.Fragment>
-											<Button>Я перевел {+ fetchedUser.sex == 1 ? 'а' : ''}</Button>
+											<Button
+												onClick={() => send(debt.id)}
+											>
+												Я перевел {+ fetchedUser.sex == 1 ? 'а' : ''}
+											</Button>
 											</React.Fragment>
 										}
 									>
@@ -202,7 +250,11 @@ const Home = ({ id, go, fetchedUser }) => {
 										key={debtor.id}
 										actions={
 											<React.Fragment>
-											<Button>Подтвердить перевод</Button>
+											<Button
+												onClick={() => confirm(debtor.id)}
+											>
+												Подтвердить перевод
+											</Button>
 											</React.Fragment>
 										}
 									>
