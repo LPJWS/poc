@@ -131,7 +131,7 @@ const Home = ({ id, go, fetchedUser }) => {
 					</Gradient>
 				</Group>}
 				{member && 
-				<Group header={<Header>Счета</Header>}>
+				<Group header={<Header>Счета <Button size="s" mode="outline" onClick={() => getMember()}>Обновить</Button></Header>}>
 					{
 						member.checks.length ? member.checks.map((check, index) => {
 							return (
